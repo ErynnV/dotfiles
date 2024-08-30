@@ -8,5 +8,7 @@
 	autosquash = true
 	autostash = true
 	updateRefs = true
+[merge]
+	conflictstyle = diff3
 [includeIf "gitdir:~/.git"]
 	path = .gitconfig-dotfiles
