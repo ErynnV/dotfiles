@@ -1,0 +1,5 @@
+[user]
+	email = vandreerynn@gmail.com
+	name = Erynn Vandre
+[includeIf "gitdir:~/.git"]
+	path = .gitconfig-dotfiles
