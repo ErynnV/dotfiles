@@ -1,5 +1,12 @@
 [user]
 	email = vandreerynn@gmail.com
 	name = Erynn Vandre
+[pull]
+	rebase = true
+	autostash = true
+[rebase]
+	autosquash = true
+	autostash = true
+	updateRefs = true
 [includeIf "gitdir:~/.git"]
 	path = .gitconfig-dotfiles
