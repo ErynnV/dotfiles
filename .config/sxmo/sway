@@ -223,6 +223,7 @@ mode "resize" {
     bindsym Escape mode "default"
 }
 bindsym $mod+r mode "resize"
+bindsym $mod+z exec twitcher
 
 set $focus #01796F
 set $light #fdfdfd
