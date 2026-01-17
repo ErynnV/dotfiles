@@ -1,0 +1,15 @@
+[user]
+	email = vandreerynn@gmail.com
+	name = Erynn Vandre
+[push]
+	default = simple
+	followTags = true
+[pull]
+	rebase = true
+	autostash = true
+[rebase]
+	autosquash = true
+	autostash = true
+	updateRefs = true
+[commit]
+	verbose = true

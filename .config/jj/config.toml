@@ -1,0 +1,5 @@
+[user]
+name = "Erynn Vandre"
+email = "vandreerynn@gmail.com"
+[aliases]
+bmup = ["bookmark", "move", "--from", "heads(::@- & bookmarks())", "--to", "@-"]
