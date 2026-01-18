@@ -1,0 +1,22 @@
+#!/bin/sh -e
+
+checklink() {
+	if ! [ -r "$1" ]; then
+		printf 'ln -s "%s" "%s"\n' "$2" "$1"
+		return
+	fi
+
+	if ! link="$(readlink "$1")"; then
+		printf 'rm -rf "%s"\n' "$1"
+		printf 'ln -s "%s" "%s"\n' "$2" "$1"
+		return
+	fi
+
+	if [ "$link" != "$2" ]; then
+		printf 'rm "%s"\n' "$1"
+		printf 'ln -s "%s" "%s"\n' "$2" "$1"
+	fi
+}
+
+checklink ~/.config/twitcher ../database/twitcher/
+checklink ~/.local/share/marker ../../database/marker/
