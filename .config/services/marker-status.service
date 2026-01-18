@@ -1,0 +1,7 @@
+[Unit]
+Description=Marker status
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=nice -n 10 marker monitor

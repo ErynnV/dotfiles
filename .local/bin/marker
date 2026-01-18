@@ -1,0 +1,190 @@
+#!/bin/sh -e
+
+. sxmo_hook_icons.sh
+
+dir="${XDG_DATA_HOME:-$HOME/.local/share}"/marker
+
+delta_message() {
+	_delta="$1"
+
+	_weeks="$((_delta / 604800))"
+	_delta="$((_delta % 604800))"
+	_days="$((_delta / 86400))"
+	_delta="$((_delta % 86400))"
+	_hours="$((_delta / 3600))"
+	_delta="$((_delta % 3600))"
+	_minutes="$((_delta / 60))"
+	_seconds="$((_delta % 60))"
+
+	_message=
+	if ! [ 0 -eq "$_weeks" ]; then
+		_message="$_weeks weeks "
+	fi
+	if ! [ 0 -eq "$_days" ]; then
+		_message="$_message$_days days "
+	fi
+	if ! [ 0 -eq "$_hours" ]; then
+		_message="$_message$_hours hours "
+	fi
+	if ! [ 0 -eq "$_minutes" ]; then
+		_message="$_message$_minutes minutes "
+	fi
+	if ! [ 0 -eq "$_seconds" ]; then
+		_message="$_message$_seconds seconds"
+	fi
+
+	printf %s "$_message"
+}
+
+show() {
+	now="$(date +%s)"
+	before="$(cat "$dir/$1")"
+	delta="$((now - before))"
+	if [ "$delta" = 0 ]; then
+		printf "now"
+	else
+		delta_message "$delta"
+	fi
+	printf "\n"
+}
+
+delta() {
+	now="$(date +%s)"
+	before="$(cat "$dir/$1")"
+	delta="$((now - before))"
+	printf "%s\n" "$delta"
+}
+
+mark() {
+	if [ -z "$1" ]; then
+		exit 1
+	fi
+	file="$dir/$1"
+
+	now="$(date +%s)"
+
+	if ! [ -f "$file" ]; then
+		printf %s "$now" > "$file"
+		notify-send -u low "First entry!"
+		exit
+	fi
+
+	before="$(cat "$file")"
+
+	delta="$((now - before))"
+	message="$(delta_message "$delta")"
+	notify-send -u low "$message"
+
+	printf %s "$now" > "$file"
+}
+
+list() {
+	find -L "$dir" -not -name '\.*' \
+		-mindepth 1 -exec basename {} \; |\
+		while read -r filename; do
+			printf "%s %s\n" "$(delta "$filename")" "$filename"
+	done | sort -h | while read -r _ filename; do
+		printf "%s: " "$filename"
+		show "$filename"
+	done
+}
+
+status() {
+	if [ -z "$1" ]; then
+		find -L "$dir" -name '\.*' -mindepth 1 -exec basename {} \; | \
+			cut -d. -f2- | \
+			while read -r filename; do
+				if [ -r "$dir/$filename" ]; then
+					status "$filename"
+				fi
+		done
+		return
+	fi
+	if ! [ -r "$dir/$1" ] || ! [ -r "$dir/.$1" ]; then
+		exit 1
+	fi
+	timer="$(cat "$dir/.${1}")"
+	delta="$(delta "$1")"
+	percent="$(printf "scale=2;%s/%s*100\n" "$delta" "$timer" | bc | cut -d. -f1)"
+	if [ "$percent" -ge 105 ]; then
+		sxmobar -a -f red "marker-$1" 47 "$1"
+	elif [ "$percent" -ge 100 ]; then
+		sxmobar -a -f yellow "marker-$1" 47 "$1"
+	elif [ "$percent" -ge 95 ]; then
+		sxmobar -a -f green "marker-$1" 47 "$1"
+	elif [ "$percent" -ge 90 ]; then
+		sxmobar -a -f green "marker-$1" 47 "$1"
+	else
+		sxmobar -d "marker-$1"
+	fi
+}
+
+monitor() {
+	finish() {
+		jobs -p | xargs kill > /dev/null 2>&1
+		if [ -n "$fifo" ]; then
+			rm "$fifo"
+		fi
+		exit
+	}
+	trap finish EXIT INT TERM
+
+	fifo="$(mktemp -u)"
+	mkfifo "$fifo"
+	inotifywait -mq -e create,modify "$dir" >> "$fifo" &
+
+	while read -r _; do
+		status
+	done < "$fifo" &
+
+	while sleep "${1:-60}"; do
+		status
+	done &
+
+	status
+	wait
+}
+
+menu() {
+	while : ; do
+		entries="$(cat <<-EOF
+			$icon_cls Close menu
+			$(list)
+			EOF
+		)"
+		picked="$(printf "%b\n" "$entries" | sxmo_dmenu.sh -p "Markers")" || return
+		case "$picked" in
+			""|"$icon_cls Close menu")
+				return
+				;;
+			*:*)
+				name="$(printf "%s\n" "$picked" | cut -d: -f1)"
+				# shellcheck disable=SC2086
+		 		mark $name
+				;;
+			*)
+				# shellcheck disable=SC2086
+		 		mark $picked
+				;;
+		esac
+	done
+}
+
+usage() {
+	cat <<-EOF >&2
+		$(basename "$0"):
+		    mark <mark>
+		    show <mark>
+		    delta <mark>
+		    status [mark]
+		    list
+		    menu
+	EOF
+}
+
+# shellcheck disable=SC2068
+case "$1" in
+	mark) $@;;
+	show|delta|list|status|menu|monitor) "$@";;
+	*) usage; exit 1;;
+esac
