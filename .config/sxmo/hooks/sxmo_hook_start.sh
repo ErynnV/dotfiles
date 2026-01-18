@@ -98,6 +98,7 @@ case "$SXMO_WM" in
 esac
 
 superctl start marker-status
+superctl start pimsync
 
 # Turn on auto-suspend
 if sxmo_wakelock.sh isenabled; then

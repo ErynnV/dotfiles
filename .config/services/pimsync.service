@@ -1,0 +1,8 @@
+[Unit]
+Description=Pimsync
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=nice -n 10 pimsync daemon
+ExecStartPre=timeout 5 curl -s https://radicale.missbanal.net
