@@ -1,0 +1,170 @@
+#!/bin/sh -e
+# title=" Twitcher"
+
+. sxmo_hook_icons.sh
+
+CONFIG_PATH="${XDG_CONFIG_HOME:-$HOME/.config}/twitcher"
+LIST_PATH="$CONFIG_PATH/list"
+
+client_id="$(pass tools/twitcher/client_id)"
+token_storage="$XDG_RUNTIME_DIR/twitcher_token.json"
+
+login() {
+	client_secret="$(pass tools/twitcher/client_secret)"
+	curl -s -X POST "https://id.twitch.tv/oauth2/token?client_id=$client_id&client_secret=$client_secret&grant_type=client_credentials"
+}
+
+access_token() {
+	if [ ! -f "$token_storage" ] || \
+		[ "null" = "$(jq -r .access_token "$token_storage")" ] || \
+		[ -z "$(jq -r .access_token "$token_storage")" ]; then
+		login > "$token_storage"
+	fi
+
+	created_at="$(date -r "$token_storage" +%s)"
+	expires_delta="$(jq -r .expires_in < "$token_storage")"
+	expires_at="$((created_at + expires_delta))"
+	if [ "$(date +%s)" -gt "$expires_at" ]; then
+		login > "$token_storage"
+	fi
+
+	jq -r .access_token < "$token_storage"
+}
+
+is_live() {
+	curl -s \
+		-H 'Accept: application/vnd.twitchtv.v5+json' \
+		-H "Authorization: Bearer $(access_token)" \
+		-H "Client-ID: $client_id" \
+		-X GET "https://api.twitch.tv/helix/streams?user_login=$1" \
+		| jq -er .data[].user_name > /dev/null
+}
+
+user_exists() {
+	curl -s \
+		-H 'Accept: application/vnd.twitchtv.v5+json' \
+		-H "Authorization: Bearer $(access_token)" \
+		-H "Client-ID: $client_id" \
+		-X GET "https://api.twitch.tv/helix/users?login=$1" \
+		| jq -er .data[].id > /dev/null
+}
+
+_list_active_lives() {
+	count=0
+	users=
+	while read -r user; do
+		users="$(printf '%s&user_login=%s' "$users" "$user")"
+		count=$((count+1))
+		if [ "$count" = 40 ]; then
+			printf '%s\n' "$users" | sed 's|^&||'
+			users=
+			count=0
+		fi
+	done < "$LIST_PATH"
+	if [ -n "$users" ]; then
+		printf '%s\n' "$users" | sed 's|^&||'
+	fi
+}
+
+list_live() {
+	_list_active_lives | \
+		xargs -n1 printf "https://api.twitch.tv/helix/streams?%s\n" | \
+		xargs -n1 curl -s \
+			-H 'Accept: application/vnd.twitchtv.v5+json' \
+			-H "Authorization: Bearer $(access_token)" \
+			-H "Client-ID: $client_id" \
+			-X GET |
+		jq -r .data[].user_name
+}
+
+podcast_entry() {
+	if [ -z "$PODCAST" ]; then
+		printf "%s Podcast mode\n" "$icon_tof"
+	else
+		printf "%s Podcast mode\n" "$icon_ton"
+	fi
+}
+
+cookie_entry() {
+	if [ -z "$COOKIE" ]; then
+		printf "%s Cookie mode\n" "$icon_tof"
+	else
+		printf "%s Cookie mode\n" "$icon_ton"
+	fi
+}
+
+touch "$LIST_PATH"
+
+if [ -z "$*" ]; then
+	LIVES="$(list_live | sort)"
+	while : ; do
+		live="$(
+			bemenu -i -p "Twitcher" <<-EOF
+				$(podcast_entry)
+				$(cookie_entry)
+				$LIVES
+			EOF
+		)" || exit
+		case "$live" in
+			"$icon_tof Podcast mode")
+				PODCAST=1
+				;;
+			"$icon_ton Podcast mode")
+				unset PODCAST
+				;;
+			"$icon_tof Cookie mode")
+				COOKIE=1
+				;;
+			"$icon_ton Cookie mode")
+				unset COOKIE
+				;;
+			*)
+				set --
+
+				if [ -n "$PODCAST" ]; then
+					set -- --no-video
+				fi
+				if [ -n "$COOKIE" ]; then
+					set -- --ytdl-raw-options=cookies-from-browser=chromium:~/.local/share/qutebrowser
+				fi
+
+				exec "$(basename "$0")" "$live" "$@"
+				;;
+		esac
+	done
+fi
+
+user_login="$(printf %s "$1" | tr '[:upper:]' '[:lower:]')"
+shift
+
+if ! grep -iq "^$user_login$" "$LIST_PATH"; then
+	if user_exists "$user_login"; then
+		printf "Adding %s to list" "$user_login"
+		printf "%s\n" "$user_login" >> "$LIST_PATH"
+	else
+		printf "Unknown %s" "$user_login"
+		exit 1
+	fi
+fi
+
+if ! is_live "$user_login"; then
+	notify-send "$user_login not live"
+	exit 1
+fi
+
+while : ; do
+	mpv --no-resume-playback --force-window=immediate https://www.twitch.tv/"$user_login" "$@"
+	return="$?"
+	case "$return" in
+		2|3)
+			continue
+			;;
+		0|4)
+			exit 0
+			;;
+		*)
+			notify-send -u critical "Crazy $return"
+			break
+			;;
+	esac
+done
