@@ -1,0 +1,27 @@
+[default]
+default_calendar = personal
+
+[locale]
+timeformat= %H:%M
+dateformat= %m-%d
+longdateformat= %Y-%m-%d
+datetimeformat= %m-%d %H:%M
+longdatetimeformat= %Y-%m-%d %H:%M
+
+[view]
+agenda_event_format = {calendar-color}{cancelled}{start-end-time-style} {title}{repeat-symbol}{alarm-symbol}{reset}
+event_format = {calendar-color}{cancelled}{start}-{end} {title}{repeat-symbol}{alarm-symbol}{reset}
+
+[calendars]
+
+  [[personal]]
+    path = ~/.local/share/personal/icalendar/28fd1a92-ffc1-5246-1fd4-80b0ce8ea0e0/
+    color = light green
+
+  [[birthday]]
+    path = ~/.local/share/personal/icalendar/23dab6a0-361e-691c-5870-d417269135db/
+    color = yellow
+
+  [[cal-bebous]]
+    path = ~/.local/share/personal/icalendar/cal-bebous/
+    color = light red
