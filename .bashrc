@@ -12,7 +12,7 @@ shopt -s globstar
 shopt -s histappend
 
 short_pwd() {
-	printf "$(pwd | sed -e "s%$HOME%\~%" -e "s%\(\.\)\?\([^\/]\)\([^\/]*\)/%\1\2/%g")"
+	pwd | sed -e "s%$HOME%\~%" -e "s%\(\.\)\?\([^\/]\)\([^\/]*\)/%\1\2/%g"
 }
 
 RED="\[\033[31m\]"
