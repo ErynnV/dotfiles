@@ -125,7 +125,7 @@ if [ -z "$*" ]; then
 					set -- --no-video
 				fi
 				if [ -n "$COOKIE" ]; then
-					set -- --ytdl-raw-options=cookies-from-browser=chromium:~/.local/share/qutebrowser
+					set -- --ytdl-raw-options=cookies-from-browser=firefox
 				fi
 
 				exec "$(basename "$0")" "$live" "$@"
