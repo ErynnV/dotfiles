@@ -1,0 +1,3 @@
+image=`sxmo_hook_wallpaper.sh`
+scaling=fit
+color=#1e1e1e
