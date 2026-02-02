@@ -304,6 +304,13 @@ bindsym button2 kill
 bindswitch lid:on exec sxmo_wm.sh display off
 bindswitch lid:off exec sxmo_wm.sh display on
 
+# on desktop
+bindsym XF86AudioMute exec sxmo_audio.sh vol togglemute
+bindsym Shift+XF86AudioMute exec sxmo_audio.sh mic togglemute
+bindsym XF86AudioLowerVolume exec sxmo_audio.sh vol down
+bindsym XF86AudioRaiseVolume exec sxmo_audio.sh vol up
+bindsym XF86AudioMicMute exec sxmo_audio.sh mic togglemute
+
 include /etc/sway/config.d/*
 
 exec 'printf %s "$SWAYSOCK" > "$XDG_RUNTIME_DIR"/sxmo.swaysock'
