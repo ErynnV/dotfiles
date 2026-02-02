@@ -1,0 +1,15 @@
+#!/bin/sh
+
+set -e
+
+target="erynn@seedbox.missbanal.net:/var/lib/transmission-daemon/downloads"
+mountpoint="$HOME/seedbox"
+
+mkdir -p "$mountpoint"
+
+if [ -n "$(ls "$mountpoint")" ]; then
+	printf "Already mounted ?\n" >&2
+	exit 1
+else
+	sshfs -o ro,reconnect "$target" "$mountpoint"
+fi
