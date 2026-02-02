@@ -141,6 +141,8 @@ superctl start sxmo_notificationmonitor
 # Play a funky startup tune if you want (disabled by default)
 #mpv --quiet --no-video ~/welcome.ogg &
 
+gsettings set org.gnome.desktop.interface color-scheme prefer-dark
+
 # mmsd and vvmd
 if [ -z "$SXMO_NO_MODEM" ]; then
 	if [ -f "${SXMO_MMS_BASE_DIR:-"$HOME"/.mms/modemmanager}/mms" ]; then
