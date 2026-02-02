@@ -1,0 +1,50 @@
+#!/bin/sh -e
+# title=" Pass"
+
+typeit=
+otp=
+if [ "-p" = "$1" ]; then
+	otp=1
+	shift
+fi
+if [ "-t" = "$1" ]; then
+	typeit=1
+	shift
+fi
+
+prefix=${PASSWORD_STORE_DIR-$HOME/.password-store}
+
+password="$(
+	find -L "$prefix"/"${otp:+.otp/}" -type f -name "*.gpg" | \
+		sort | \
+		sed -e "s|$prefix/"${otp:+.otp/}"||" -e "s|.gpg$||" | \
+		grep -v "/\." | grep -v "^\." | \
+		sxmo_dmenu.sh -i
+)"
+
+[ -z "$password" ] && exit
+
+if [ -n "$otp" ]; then
+	set -- pass-otp "$password"
+else
+	set -- pass show "$password"
+fi
+
+if [ -n "$WAYLAND_DISPLAY" ]; then
+	if [ -n "$typeit" ]; then
+		if [ -n "$otp" ]; then
+			"$@" | wtype -
+		else
+			"$@" | wtype "$(basename "$password")" -s 250 -k Tab -s 250 -
+		fi
+	fi
+	"$@" | wl-copy
+
+	sleep 5
+	wl-copy -c
+else
+	if [ -n "$typeit" ]; then
+		printf "%s\n" "We can't type it" >2
+	fi
+	"$@" | xclip -i
+fi
