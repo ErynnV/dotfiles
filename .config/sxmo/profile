@@ -71,3 +71,5 @@ export SXMO_RINGNUMBER=10
 
 #Set to the default text for a new text message.
 export SXMO_DEFAULT_DRAFT="Enter new message here."
+
+export SXMO_MIN_BRIGHTNESS=1
