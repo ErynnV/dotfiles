@@ -20,3 +20,4 @@ checklink() {
 
 checklink ~/.config/twitcher ../database/twitcher/
 checklink ~/.local/share/marker ../../database/marker/
+checklink ~/.local/state/mpv/watch_later ../../../database/mpv/watch_later/
