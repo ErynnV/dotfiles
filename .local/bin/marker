@@ -107,13 +107,13 @@ status() {
 	delta="$(delta "$1")"
 	percent="$(printf "scale=2;%s/%s*100\n" "$delta" "$timer" | bc | cut -d. -f1)"
 	if [ "$percent" -ge 105 ]; then
-		sxmobar -a -f red "marker-$1" 47 "$1"
+    		sxmobar -a -f red "marker-$1" 7 "$1"
 	elif [ "$percent" -ge 100 ]; then
-		sxmobar -a -f yellow "marker-$1" 47 "$1"
+		sxmobar -a -f yellow "marker-$1" 7 "$1"
 	elif [ "$percent" -ge 95 ]; then
-		sxmobar -a -f green "marker-$1" 47 "$1"
+		sxmobar -a -f green "marker-$1" 7 "$1"
 	elif [ "$percent" -ge 90 ]; then
-		sxmobar -a -f green "marker-$1" 47 "$1"
+		sxmobar -a -f green "marker-$1" 7 "$1"
 	else
 		sxmobar -d "marker-$1"
 	fi
