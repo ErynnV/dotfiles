@@ -17,20 +17,38 @@ delta_message() {
 	_seconds="$((_delta % 60))"
 
 	_message=
+	_once=
 	if ! [ 0 -eq "$_weeks" ]; then
-		_message="$_weeks weeks "
+		_message="$_weeks weeks"
+		_once=1
 	fi
 	if ! [ 0 -eq "$_days" ]; then
-		_message="$_message$_days days "
+		if [ -n "$_once" ]; then
+			_message="$_message "
+		fi
+		_message="$_message$_days days"
+		_once=1
 	fi
 	if ! [ 0 -eq "$_hours" ]; then
-		_message="$_message$_hours hours "
+		if [ -n "$_once" ]; then
+			_message="$_message "
+		fi
+		_message="$_message$_hours hours"
+		_once=1
 	fi
 	if ! [ 0 -eq "$_minutes" ]; then
-		_message="$_message$_minutes minutes "
+		if [ -n "$_once" ]; then
+			_message="$_message "
+		fi
+		_message="$_message$_minutes minutes"
+		_once=1
 	fi
 	if ! [ 0 -eq "$_seconds" ]; then
+		if [ -n "$_once" ]; then
+			_message="$_message "
+		fi
 		_message="$_message$_seconds seconds"
+		_once=1
 	fi
 
 	printf %s "$_message"
@@ -44,6 +62,12 @@ show() {
 		printf "now"
 	else
 		delta_message "$delta"
+	fi
+	if [ -r "$dir/.$1" ]; then
+		timeout="$(cat "$dir/.$1")"
+		printf " ("
+		delta_message "$timeout"
+		printf ")"
 	fi
 	printf "\n"
 }
@@ -89,6 +113,23 @@ list() {
 	done
 }
 
+timeout_list() {
+	find -L "$dir" -not -name '\.*' \
+		-mindepth 1 -exec basename {} \; |\
+		while read -r filename; do
+			printf "%s %s\n" "$(delta "$filename")" "$filename"
+	done | sort -h | while read -r _ filename; do
+		printf "%s: " "$filename"
+		if [ -r "$dir/.$filename" ]; then
+			timeout="$(cat "$dir/.$filename")"
+			delta_message "$timeout"
+		else
+			printf "none"
+		fi
+		printf "\n"
+	done
+}
+
 status() {
 	if [ -z "$1" ]; then
 		find -L "$dir" -name '\.*' -mindepth 1 -exec basename {} \; | \
@@ -107,7 +148,7 @@ status() {
 	delta="$(delta "$1")"
 	percent="$(printf "scale=2;%s/%s*100\n" "$delta" "$timer" | bc | cut -d. -f1)"
 	if [ "$percent" -ge 105 ]; then
-    		sxmobar -a -f red "marker-$1" 7 "$1"
+		sxmobar -a -f red "marker-$1" 7 "$1"
 	elif [ "$percent" -ge 100 ]; then
 		sxmobar -a -f yellow "marker-$1" 7 "$1"
 	elif [ "$percent" -ge 95 ]; then
@@ -145,10 +186,71 @@ monitor() {
 	wait
 }
 
+timeout_menu() {
+	while : ; do
+		entries="$(cat <<-EOF
+			$icon_arl Return
+			$(timeout_list)
+			EOF
+		)"
+		picked="$(printf "%b\n" "$entries" | sxmo_dmenu.sh -p "Markers timeouts")" || return
+		case "$picked" in
+			""|"$icon_arl Return")
+				return
+				;;
+			*:*)
+				picked="$(printf "%s\n" "$picked" | cut -d: -f1)"
+				;;
+		esac
+		if ! [ -r "$dir/$picked" ]; then
+			continue
+		fi
+		entries="$(cat <<-EOF
+			4w (4 weeks)
+			4d (4 days)
+			4h (4 hours)
+			4m (4 minutes)
+			4s (4 seconds)
+			none (remove)
+			EOF
+		)"
+		timeout="$(printf "%b\n" "$entries" | sxmo_dmenu.sh -p "Markers timeout "$picked"")" || continue
+		if [ -z "$timeout" ]; then
+			continue
+		fi
+		timeout="$(printf "%s\n" "$timeout" | cut -d" " -f1)"
+		case "$timeout" in
+			none)
+				rm -f "$dir/.$picked"
+				continue
+				;;
+			*w)
+				timeout="$((${timeout%w} * 604800))"
+				;;
+			*d)
+				timeout="$((${timeout%d} * 86400))"
+				;;
+			*h)
+				timeout="$((${timeout%h} * 3600))"
+				;;
+			*m)
+				timeout="$((${timeout%m} * 60))"
+				;;
+			*s)
+				timeout="${timeout%s}"
+				;;
+			*)
+				continue
+		esac
+		printf %s "$timeout" > "$dir/.$picked"
+	done
+}
+
 menu() {
 	while : ; do
 		entries="$(cat <<-EOF
 			$icon_cls Close menu
+			$icon_clk Timeouts
 			$(list)
 			EOF
 		)"
@@ -156,6 +258,9 @@ menu() {
 		case "$picked" in
 			""|"$icon_cls Close menu")
 				return
+				;;
+			"$icon_clk Timeouts")
+				timeout_menu
 				;;
 			*:*)
 				name="$(printf "%s\n" "$picked" | cut -d: -f1)"
