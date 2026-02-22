@@ -1,5 +1,5 @@
 #!/bin/sh
-# configversion: e8d49ea3c4e895d587a17128f47c4bbd
+# configversion: f82927886017574670319250908c180c
 # SPDX-License-Identifier: AGPL-3.0-only
 # Copyright 2022 Sxmo Contributors
 
@@ -114,7 +114,7 @@ if [ ! -e "$XDG_CACHE_HOME"/sxmo/sxmo.nogesture ]; then
 	superctl start sxmo_hook_lisgd
 fi
 
-if [ -z "$SXMO_NO_MODEM" ] && command -v ModemManager > /dev/null; then
+if command -v ModemManager > /dev/null; then
 	# Turn on the dbus-monitors for modem-related tasks
 	superctl start sxmo_modemmonitor
 
@@ -144,11 +144,13 @@ superctl start sxmo_notificationmonitor
 gsettings set org.gnome.desktop.interface color-scheme prefer-dark
 
 # mmsd and vvmd
-if [ -z "$SXMO_NO_MODEM" ]; then
+if command -v mmsdtng > /dev/null; then
 	if [ -f "${SXMO_MMS_BASE_DIR:-"$HOME"/.mms/modemmanager}/mms" ]; then
 		superctl start mmsd-tng
 	fi
+fi
 
+if command -v vvmd > /dev/null; then
 	if [ -f "${SXMO_VVM_BASE_DIR:-"$HOME"/.vvm/modemmanager}/vvm" ]; then
 		superctl start vvmd
 	fi
