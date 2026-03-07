@@ -2,3 +2,4 @@ export PATH="$HOME/.local/bin:$PATH"
 eval $(ssh-agent)
 export GTK_THEME=Adwaita:dark
 export LESS="-FRX --mouse"
+export BEMENU_OPTS="--ab #222222 --af #bbbbbb --bdr #005577 --border 3 --cb #222222 --center --cf #bbbbbb --fb #222222 --fbb #eeeeee --fbf #222222 --ff #bbbbbb --fixed-height --fn 'Sxmo 14' --hb #005577 --hf #eeeeee --line-height 20 --list 16 --margin 40 --nb #222222 --nf #bbbbbb --no-overlap --no-spacing --sb #323232 --scb #005577 --scf #eeeeee --scrollbar autohide --tb #005577 --tf #eeeeee --wrap -i"
