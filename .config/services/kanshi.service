@@ -1,0 +1,7 @@
+[Unit]
+Description=Kanshi daemon
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=kanshi

@@ -1,0 +1,1 @@
+include '$(if [ -f "$HOME/.config/kanshi/$HOSTNAME" ]; then echo "$HOME/.config/kanshi/$HOSTNAME"; else echo "/dev/null"; fi)'

@@ -126,6 +126,9 @@ fi
 # Start the desktop wallpaper
 superctl start sxmo_bg
 
+# Start the output manager
+superctl start kanshi
+
 # Start the desktop widget (e.g. clock)
 superctl start sxmo_conky
 
