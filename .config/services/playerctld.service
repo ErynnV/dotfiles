@@ -1,0 +1,7 @@
+[Unit]
+Description=MPRIS command-line controller for music players
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=/usr/bin/playerctld

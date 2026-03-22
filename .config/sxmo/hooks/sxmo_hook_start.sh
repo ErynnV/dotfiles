@@ -141,6 +141,9 @@ superctl start sxmo_networkmonitor
 # The daemon that display notifications popup messages
 superctl start sxmo_notificationmonitor
 
+# The daemon that handle mpris clients
+superctl start playerctld
+
 # Play a funky startup tune if you want (disabled by default)
 #mpv --quiet --no-video ~/welcome.ogg &
 
