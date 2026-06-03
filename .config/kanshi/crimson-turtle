@@ -1,0 +1,5 @@
+profile default {
+	output eDP-1 {
+		scale 1.4
+	}
+}
