@@ -1,5 +1,5 @@
 #!/bin/sh
-# configversion: f82927886017574670319250908c180c
+# configversion: 202a016d28c1c0f41d0671e55e6264c0
 # SPDX-License-Identifier: AGPL-3.0-only
 # Copyright 2022 Sxmo Contributors
 
@@ -11,9 +11,6 @@
 
 # Create xdg user directories, such as ~/Pictures
 xdg-user-dirs-update
-
-sxmo_service.sh setup
-sxmo_service.sh startall
 
 sxmo_jobs.sh start daemon_manager superd
 
