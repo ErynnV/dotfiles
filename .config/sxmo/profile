@@ -1,5 +1,5 @@
 #!/bin/sh
-# configversion: e7cdaa3a889d251bed8a89ce8c622995
+# configversion: 960dc8c25da3da80137d513c65da0ec9
 
 # shellcheck source=scripts/core/sxmo_common.sh
 . sxmo_common.sh
@@ -14,7 +14,7 @@
 
 # You will sometime get SMS or calls from not
 #  country code prefixed phone numbers. To make
-#  it easy to fixup configure the default countryu.
+#  it easy to fixup configure the default country.
 #export DEFAULT_COUNTRY=FR
 
 ### Configuration Parameters ###
