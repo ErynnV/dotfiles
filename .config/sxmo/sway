@@ -1,5 +1,5 @@
 # Default config for sway
-# configversion: e7b26250a7edc29f079da936d2d2473c
+# configversion: 868cefc5e7bba22ed8b6a6bea2654d2f
 #
 # Copy this to ~/.config/sway/config and edit it to your liking.
 #
@@ -26,7 +26,8 @@ font "Sxmo 11"
 
 exec_always sxmo_swayinitconf.sh
 
-exec_always dbus-update-activation-environment WAYLAND_DISPLAY DISPLAY XDG_CURRENT_DESKTOP
+exec_always sxmo_service.sh import
+exec_always dbus-update-activation-environment WAYLAND_DISPLAY DISPLAY
 
 mode "menu" {
     # This is slower than remapping the keys using a keymap, but we don't need
@@ -76,7 +77,7 @@ mode "N900" {
     # Launch appmenu
     bindsym $mod+p exec sxmo_appmenu.sh
     bindsym $mod+Shift+p exec sxmo_appmenu.sh sys
-    bindsym $mod+Shift+d exec sxmo_drun.sh
+    bindsym $mod+Shift+d exec sxmo_drun.sh run
 
     # Wm menu switcher
     bindsym $mod+i exec sxmo_wmmenu.sh windowswitcher

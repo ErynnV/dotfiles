@@ -1,5 +1,5 @@
 #!/bin/sh
-# configversion: 202a016d28c1c0f41d0671e55e6264c0
+# configversion: 5d777b987cebc4d4b4ceba5734f22fd8
 # SPDX-License-Identifier: AGPL-3.0-only
 # Copyright 2022 Sxmo Contributors
 
@@ -11,13 +11,6 @@
 
 # Create xdg user directories, such as ~/Pictures
 xdg-user-dirs-update
-
-sxmo_jobs.sh start daemon_manager superd
-
-# let time to superd to start correctly
-while ! superctl status > /dev/null 2>&1; do
-	sleep 0.5
-done
 
 # Not dangerous if "locker" isn't an available state
 sxmo_state.sh set locker
@@ -31,16 +24,16 @@ fi
 if [ -z "$SXMO_NO_AUDIO" ]; then
 	if ! [ -d /run/systemd/system ]; then
 		if [ "$(command -v pulseaudio)" ]; then
-			superctl start pulseaudio
+			sxmo_service.sh start pulseaudio
 		elif [ "$(command -v pipewire)" ]; then
 			# pipewire-pulse will start pipewire
-			superctl start pipewire-pulse
-			superctl start wireplumber
+			sxmo_service.sh start pipewire-pulse
+			sxmo_service.sh start wireplumber
 		fi
 	fi
 
 	# monitor for headphone for statusbar
-	superctl start sxmo_soundmonitor
+	sxmo_service.sh start sxmo_soundmonitor
 fi
 
 # Periodically update some status bar components
@@ -49,25 +42,25 @@ sxmo_jobs.sh start statusbar_periodics sxmo_run_aligned.sh 60 \
 	sxmo_hook_statusbar.sh periodics
 
 # dunst is required for warnings.
-superctl start dunst
+sxmo_service.sh start dunst
 
 # start adaptive brightness at boot
-# superctl start sxmo_adaptivebrightness
+# sxmo_service.sh start sxmo_adaptivebrightness
 
 # load some other little things here too.
 case "$SXMO_WM" in
 	river)
-		superctl start sxmo_wob
-		superctl start bonsaid
-		superctl start sxmo_riverbar
+		sxmo_service.sh start sxmo_wob
+		sxmo_service.sh start bonsaid.sxmo
+		sxmo_service.sh start sxmo_riverbar
 		;;
 	sway)
-		superctl start sxmo_wob
-		superctl start sxmo_menumode_toggler
-		superctl start bonsaid
+		sxmo_service.sh start sxmo_wob
+		sxmo_service.sh start sxmo_menumode_toggler
+		sxmo_service.sh start bonsaid.sxmo
 		;;
 	dwm|i3)
-		superctl start sxmo_xob
+		sxmo_service.sh start sxmo_xob
 
 		# Auto hide cursor with touchscreen, Show it with a mouse
 		if command -v "unclutter-xfixes" > /dev/null; then
@@ -75,16 +68,16 @@ case "$SXMO_WM" in
 		else
 			set -- unclutter
 		fi
-		superctl start "$1"
+		sxmo_service.sh start "$1"
 
-		superctl start autocutsel
-		superctl start autocutsel-primary
-		superctl start sxmo-x11-status
-		superctl start bonsaid
+		sxmo_service.sh start autocutsel
+		sxmo_service.sh start autocutsel-primary
+		sxmo_service.sh start sxmo-x11-status
+		sxmo_service.sh start bonsaid.sxmo
 		[ -n "$SXMO_MONITOR" ] && xrandr --output "$SXMO_MONITOR" --primary
 		# Set onboard to auto-hide in config first
-		if [ "$KEYBOARD" = "onboard" ]; then
-			onboard "$KEYBOARD_ARGS"
+		if [ "$SXMO_KEYBOARD" = "onboard" ]; then
+			onboard "$SXMO_KEYBOARD_ARGS"
 		fi
 		case "$SXMO_WM" in
 			i3)
@@ -94,13 +87,12 @@ case "$SXMO_WM" in
 		;;
 esac
 
-superctl start marker-status
-superctl start pimsync
+sxmo_service.sh start start pimsync
 
 # Turn on auto-suspend
 if sxmo_wakelock.sh isenabled; then
 	sxmo_wakelock.sh lock sxmo_not_suspendable infinite
-	superctl start sxmo_autosuspend
+	sxmo_service.sh start sxmo_autosuspend
 fi
 
 # To setup initial unlock state
@@ -108,12 +100,12 @@ sxmo_state.sh set unlock
 
 # Turn on lisgd
 if [ ! -e "$XDG_CACHE_HOME"/sxmo/sxmo.nogesture ]; then
-	superctl start sxmo_hook_lisgd
+	sxmo_service.sh start sxmo_hook_lisgd
 fi
 
 if command -v ModemManager > /dev/null; then
 	# Turn on the dbus-monitors for modem-related tasks
-	superctl start sxmo_modemmonitor
+	sxmo_service.sh start sxmo_modemmonitor
 
 	# place a wakelock for 120s to allow the modem to fully warm up (eg25 +
 	# elogind/systemd would do this for us, but we don't use those.)
@@ -121,25 +113,22 @@ if command -v ModemManager > /dev/null; then
 fi
 
 # Start the desktop wallpaper
-superctl start sxmo_bg
+sxmo_service.sh start sxmo_bg
 
 # Start the output manager
-superctl start kanshi
+sxmo_service.sh start kanshi
 
 # Start the desktop widget (e.g. clock)
-superctl start sxmo_conky
+sxmo_service.sh start sxmo_conky
 
 # Monitor the battery
-superctl start sxmo_battery_monitor
+sxmo_service.sh start sxmo_battery_monitor
 
 # It watch network changes and update the status bar icon by example
-superctl start sxmo_networkmonitor
+sxmo_service.sh start sxmo_networkmonitor
 
 # The daemon that display notifications popup messages
-superctl start sxmo_notificationmonitor
-
-# The daemon that handle mpris clients
-superctl start playerctld
+sxmo_service.sh start sxmo_notificationmonitor
 
 # Play a funky startup tune if you want (disabled by default)
 #mpv --quiet --no-video ~/welcome.ogg &
@@ -149,13 +138,13 @@ gsettings set org.gnome.desktop.interface color-scheme prefer-dark
 # mmsd and vvmd
 if command -v mmsdtng > /dev/null; then
 	if [ -f "${SXMO_MMS_BASE_DIR:-"$HOME"/.mms/modemmanager}/mms" ]; then
-		superctl start mmsd-tng
+		sxmo_service.sh start mmsd-tng
 	fi
 fi
 
 if command -v vvmd > /dev/null; then
 	if [ -f "${SXMO_VVM_BASE_DIR:-"$HOME"/.vvm/modemmanager}/vvm" ]; then
-		superctl start vvmd
+		sxmo_service.sh start vvmd
 	fi
 fi
 

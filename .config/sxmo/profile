@@ -1,5 +1,5 @@
 #!/bin/sh
-# configversion: 960dc8c25da3da80137d513c65da0ec9
+# configversion: 50a19659ad96e15204342fe3210fed88
 
 # shellcheck source=scripts/core/sxmo_common.sh
 . sxmo_common.sh
@@ -15,7 +15,7 @@
 # You will sometime get SMS or calls from not
 #  country code prefixed phone numbers. To make
 #  it easy to fixup configure the default country.
-#export DEFAULT_COUNTRY=FR
+#export SXMO_DEFAULT_COUNTRY=FR
 
 ### Configuration Parameters ###
 
@@ -40,10 +40,10 @@ export DIFFTOOL=meld
 #export DMENU_WRAP_AROUND=1
 
 # Enable audio feedback on keypress
-#export KEYBOARD_ARGS="-o | clickclack -f $(xdg_data_path sxmo/keytap.wav)"
+#export SXMO_KEYBOARD_ARGS="-o | clickclack -f $(xdg_data_path sxmo/keytap.wav)"
 
 # Or, enable vibration feedback on keypress
-#export KEYBOARD_ARGS="-o | clickclack -V"
+#export SXMO_KEYBOARD_ARGS="-o | clickclack -V"
 
 # Set the scale factor in sway
 # export SXMO_SWAY_SCALE=2
